@@ -9,6 +9,10 @@ body {
     background-color: var(--platinum-light);
 }
 
+.body-green{
+    background-color: green;
+}
+
 .full-height {
     height: 100%;
 }
