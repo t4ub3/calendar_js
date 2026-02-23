@@ -1,0 +1,13 @@
+:root {
+    --muted-teal: #85baa1;
+    --muted-teal-light: #95c3ae;
+    --vintage-grape: #544e61;
+    --slate-grey: #6e8894;
+    --linen: #f7ebde;
+    --linen-dark: #f2dfc9;
+    --platinum-light: #EEF1F2;
+    --platinum: #e8ebed;
+
+    --header-height: 64px;
+    --footer-height: 36px;
+}
