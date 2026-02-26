@@ -1,10 +1,7 @@
 const rootStyles = getComputedStyle(document.documentElement);
 
-const mutedTealLight = rootStyles.getPropertyValue('--muted-teal-light').trim();
-const slateGrey = rootStyles.getPropertyValue('--slate-grey').trim();
-const linen = rootStyles.getPropertyValue('--linen').trim();
-const platinumLight = rootStyles.getPropertyValue('--platinum-light').trim();
-const platinum = rootStyles.getPropertyValue('--platinum').trim();
+const platinumDark  = { r:208, g:211, b:213 };
+const platinumLight = { r:238, g:241, b:242 };
 
 
 const columns = 100;
@@ -17,46 +14,80 @@ const rows = Math.floor(height / cellSize);
 
 const delay = 1000;
 let lastTime = 0;
-const animationDuration = 1000;
+const animationDuration = 2000;
 
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-const grid = Array.from({ length: columns }, () => new Array(rows));
+let currentGrid = Array.from({ length: columns }, () => new Array(rows));
+let nextGrid    = Array.from({ length: columns }, () => new Array(rows));
 
 function initGrid() {
-    for (let i = 0; i < grid.length; i++) {
-        for (let j = 0; j < grid[i].length; j++) {
+    for (let i = 0; i < currentGrid.length; i++) {
+        for (let j = 0; j < currentGrid[i].length; j++) {
             var rndBool = Math.random() < 0.3;
-            grid[i][j] = rndBool;
-            var color = rndBool ? platinumLight : platinum;
+            currentGrid[i][j] = rndBool;
+            var color = rndBool ? platinumLight : platinumDark;
             ctx.fillStyle = color;
             ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
         }
     }
 }
 
-function draw(timestamp) {
-    if (timestamp - lastTime > delay) {
-        lastTime = timestamp;
-        ctx.clearRect(0, 0, canvas.width, canvas.height);
-        updateGrid()
+function computeNextGrid() {
+    for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < rows; j++) {
+            nextGrid[i][j] = checkNewState(currentGrid[i][j], i, j);
+        }
     }
-    requestAnimationFrame(draw);
 }
 
-function updateGrid() {
-    for (let i = 0; i < grid.length; i++) {
-        for (let j = 0; j < grid[i].length; j++) {
-            var state = checkNewState(grid[i][j], i, j);
-            grid[i][j] = state;
-            var color = state ? platinumLight : platinum;
-            console.log(color);
-            ctx.fillStyle = color;
-            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+function drawGrid(progress) {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
 
+    for (let i = 0; i < columns; i++) {
+        for (let j = 0; j < rows; j++) {
+
+            let from = currentGrid[i][j] ? 1 : 0;
+            let to   = nextGrid[i][j]    ? 1 : 0;
+
+            let transitionFactor = from + (to - from) * progress;
+
+            let r = platinumDark.r  + (platinumLight.r  - platinumDark.r)  * transitionFactor;
+            let g = platinumDark.g  + (platinumLight.g  - platinumDark.g)  * transitionFactor;
+            let b = platinumDark.b  + (platinumLight.b  - platinumDark.b)  * transitionFactor;
+
+            ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
+
+            ctx.fillRect(
+                i * cellSize,
+                j * cellSize,
+                cellSize,
+                cellSize
+            );
         }
-    };
+    }
+}
+
+let transitionStart = 0;
+
+function loop(timestamp) {
+
+    let elapsed = timestamp - transitionStart;
+    let progress = Math.min(elapsed / animationDuration, 1);
+
+    drawGrid(progress);
+
+    if (progress >= 1) {
+
+        // move next → current
+        [currentGrid, nextGrid] = [nextGrid, currentGrid];
+
+        computeNextGrid();
+        transitionStart = timestamp;
+    }
+
+    requestAnimationFrame(loop);
 }
 
 function checkNewState(currentState, i, j) {
@@ -83,7 +114,7 @@ function countNeighbors(x, y) {
             const nx = wrap(x + dx, columns);
             const ny = wrap(y + dy, rows);
 
-            if (grid[nx][ny]) {
+            if (currentGrid[nx][ny]) {
                 count++;
             }
         }
@@ -91,6 +122,8 @@ function countNeighbors(x, y) {
     return count;
 }
 
+
 initGrid();
-requestAnimationFrame(draw);
+computeNextGrid();
+requestAnimationFrame(loop);
 
