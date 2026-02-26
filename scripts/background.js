@@ -4,20 +4,26 @@ const platinumDark  = { r:208, g:211, b:213 };
 const platinumLight = { r:238, g:241, b:242 };
 
 
-const columns = 100;
+const columns = 50;
 const canvas = document.getElementById("background-canvas");
 const width = window.innerWidth;
 const height = window.innerHeight;
 const ctx = canvas.getContext("2d");
-const cellSize = width / columns;
-const rows = Math.floor(height / cellSize);
+const cellSize = Math.round(width / columns);
+const rows = Math.round(height / cellSize);
 
-const delay = 1000;
-let lastTime = 0;
-const animationDuration = 2000;
+const generationDelay = 2000;
+const animationDuration = 1500;
 
-canvas.width = window.innerWidth;
-canvas.height = window.innerHeight;
+const dpr = window.devicePixelRatio || 1;
+
+canvas.width  = window.innerWidth  * dpr;
+canvas.height = window.innerHeight * dpr;
+
+canvas.style.width  = window.innerWidth  + "px";
+canvas.style.height = window.innerHeight + "px";
+
+ctx.scale(dpr, dpr);
 
 let currentGrid = Array.from({ length: columns }, () => new Array(rows));
 let nextGrid    = Array.from({ length: columns }, () => new Array(rows));
@@ -29,7 +35,7 @@ function initGrid() {
             currentGrid[i][j] = rndBool;
             var color = rndBool ? platinumLight : platinumDark;
             ctx.fillStyle = color;
-            ctx.fillRect(i * cellSize, j * cellSize, cellSize, cellSize);
+            ctx.fillRect(i * cellSize, j * cellSize, cellSize + 1, cellSize + 1);
         }
     }
 }
@@ -62,30 +68,34 @@ function drawGrid(progress) {
             ctx.fillRect(
                 i * cellSize,
                 j * cellSize,
-                cellSize,
-                cellSize
+                cellSize + 1,
+                cellSize + 1
             );
         }
     }
 }
 
+let lastGenerationTime = 0;
 let transitionStart = 0;
 
 function loop(timestamp) {
 
-    let elapsed = timestamp - transitionStart;
-    let progress = Math.min(elapsed / animationDuration, 1);
+    if (timestamp - lastGenerationTime > generationDelay) {
 
-    drawGrid(progress);
-
-    if (progress >= 1) {
-
-        // move next → current
         [currentGrid, nextGrid] = [nextGrid, currentGrid];
 
         computeNextGrid();
+
         transitionStart = timestamp;
+        lastGenerationTime = timestamp;
     }
+
+    let progress = Math.min(
+        (timestamp - transitionStart) / animationDuration,
+        1
+    );
+
+    drawGrid(progress);
 
     requestAnimationFrame(loop);
 }
