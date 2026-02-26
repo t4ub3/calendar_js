@@ -59,42 +59,8 @@ function updateGrid() {
     };
 }
 
-function checkNewStateOld(currentState, i, j) {
-    let neighbours = new Array();
-    if (i === 0 && j === 0) {
-        neighbours.push(...[grid[i][j + 1], grid[i + 1][j], grid[i + 1][j + 1]]);
-    } else if (i === 0 && j === rows - 1) {
-        neighbours.push(...[grid[i][j - 1], grid[i + 1][j], grid[i + 1][j - 1]]);
-    } else if (i === columns - 1 && j === 0) {
-        neighbours.push(...[grid[i - 1][j], grid[i - 1][j + 1], grid[i][j + 1]]);
-    } else if (i === columns - 1 && j === rows - 1) {
-        neighbours.push(...[grid[i][j - 1], grid[i - 1][j], grid[i - 1][j - 1]]);
-    } else if (i === 0) {
-        neighbours.push(...[grid[i][j + 1], grid[i + 1][j], grid[i + 1][j + 1], grid[i][j - 1], grid[i + 1][j - 1]]);
-    } else if (i === columns - 1) {
-        neighbours.push(...[grid[i][j + 1], grid[i - 1][j], grid[i - 1][j + 1], grid[i][j - 1], grid[i - 1][j - 1]]);
-    } else if (j === 0) {
-        neighbours.push(...[grid[i][j + 1], grid[i + 1][j + 1], grid[i - 1][j + 1], grid[i - 1][j], grid[i + 1][j]]);
-    } else if (j === rows - 1) {
-        neighbours.push(...[grid[i][j - 1], grid[i + 1][j - 1], grid[i - 1][j - 1], grid[i - 1][j], grid[i + 1][j]]);
-    } else {
-        neighbours.push(...[
-            grid[i - 1][j + 1],
-            grid[i - 1][j],
-            grid[i - 1][j + 1],
-            grid[i][j - 1],
-            grid[i][j + 1],
-            grid[i + 1][j - 1],
-            grid[i + 1][j],
-            grid[i + 1][j + 1],
-        ])
-    };
-    let aliveNeighbours = 0;
-    neighbours.forEach(item => {
-        if (item === true) {
-            aliveNeighbours++;
-        }
-    })
+function checkNewState(currentState, i, j) {
+    let aliveNeighbours = countNeighbors(i, j);
     if (aliveNeighbours === 2) {
         return currentState;
     } else if (aliveNeighbours === 3) {
@@ -104,61 +70,29 @@ function checkNewStateOld(currentState, i, j) {
 }
 
 function wrap(value, max) {
-  return (value + max) % max;
+    return (value + max) % max;
+}
+
+function countNeighbors(x, y) {
+    let count = 0;
+
+    for (let dy = -1; dy <= 1; dy++) {
+        for (let dx = -1; dx <= 1; dx++) {
+
+            if (dx === 0 && dy === 0) continue;
+
+            const nx = wrap(x + dx, columns);
+            const ny = wrap(y + dy, rows);
+            
+            if(grid[ny][nx]) {
+                count++;
+            }
+        }
+    }
+
+    return count;
 }
 
 initGrid();
 requestAnimationFrame(draw);
-
-
-
-/* GPT SOLUTION FOR WRAPPING
-
-
-function wrap(value, max) {
-  return (value + max) % max;
-}
-
-function countNeighbors(grid, x, y, width, height) {
-  let count = 0;
-
-  for (let dy = -1; dy <= 1; dy++) {
-    for (let dx = -1; dx <= 1; dx++) {
-
-      if (dx === 0 && dy === 0) continue;
-
-      const nx = wrap(x + dx, width);
-      const ny = wrap(y + dy, height);
-
-      count += grid[ny][nx];
-    }
-  }
-
-  return count;
-}
-
-function nextGeneration(grid, width, height) {
-  const newGrid = [];
-
-  for (let y = 0; y < height; y++) {
-    newGrid[y] = [];
-
-    for (let x = 0; x < width; x++) {
-      const neighbors = countNeighbors(grid, x, y, width, height);
-      const alive = grid[y][x];
-
-      if (alive) {
-        newGrid[y][x] = neighbors === 2 || neighbors === 3 ? 1 : 0;
-      } else {
-        newGrid[y][x] = neighbors === 3 ? 1 : 0;
-      }
-    }
-  }
-
-  return newGrid;
-}
-
-
-
-*/
 
