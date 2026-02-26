@@ -75,7 +75,6 @@ function wrap(value, max) {
 
 function countNeighbors(x, y) {
     let count = 0;
-
     for (let dy = -1; dy <= 1; dy++) {
         for (let dx = -1; dx <= 1; dx++) {
 
@@ -83,13 +82,12 @@ function countNeighbors(x, y) {
 
             const nx = wrap(x + dx, columns);
             const ny = wrap(y + dy, rows);
-            
-            if(grid[ny][nx]) {
+
+            if (grid[nx][ny]) {
                 count++;
             }
         }
     }
-
     return count;
 }
 
